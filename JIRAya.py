@@ -409,7 +409,6 @@ def JIRA_TestCases(url):
             vulnerabilities.append(f"+ CVE-2019-3403 [Information disclosured vulnerability] : Visit the URL address,you can check the user whether is exist on this host. | URL : {cve20193403}")
     except:
         pass 
-
     
     #CVE-2019-8442
     def check_cve_2019_8442(url):
