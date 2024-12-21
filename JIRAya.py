@@ -30,7 +30,7 @@ def banner():
          ███   ░███  ░███  ░███    ░███  ░███    ░███           ░███     ░███    ░███ 
         ░░████████   █████ █████   █████ █████   █████          █████    █████   █████
          ░░░░░░░░   ░░░░░ ░░░░░   ░░░░░ ░░░░░   ░░░░░          ░░░░░    ░░░░░   ░░░░░ 
-                    JIRA Yet Another vulnerability Analyzer by @FR13ND0x7f
+                    JIRA Yet Another vulnerability Analyzer by @FR13ND0x7f & carnal0wnage
          """)
     else:    
         print(f"""
@@ -92,22 +92,89 @@ def JIRA_TestCases(url):
     uaed = f"{url}secure/popups/UserPickerBrowser.jspa"
 
     # Check for unauthenticated access to JIRA dashboards
+
+    def check_unauthenticated_dashboard_access(url):
+        dashboard_url = f"{url}rest/api/2/dashboard?maxResults=100"
+
     try:
         response = requests.get(dashboard_url, verify=False)
-        
+
+        # Check for unauthenticated access and parse the response
         if response.status_code == 200:
             vulnerabilities.append(f"+ Unauthenticated access to JIRA dashboards | URL : {dashboard_url}")
-    except:
-        pass
-    #except Exception as e:
-    #    print(f"{Fore.RED}- An error occurred while checking {url}: {e}{Style.RESET_ALL}")
+
+            data = response.json()
+            start_at = data.get("startAt", "N/A")
+            max_results = data.get("maxResults", "N/A")
+            total_dashboards = data.get("total", "N/A")
+            dashboards = data.get("dashboards", [])
+
+            print(f"\n{Fore.GREEN}+ Unauthenticated Access to JIRA Dashboards Detected{Style.RESET_ALL}")
+            print(f"  URL: {dashboard_url}")
+            print(f"  Start At: {start_at}")
+            print(f"  Max Results: {max_results}")
+            print(f"  Total Dashboards: {total_dashboards}")
+            print("\n  Dashboard Details:")
+            
+            if dashboards:
+                for dashboard in dashboards:
+                    dashboard_id = dashboard.get("id", "N/A")
+                    name = dashboard.get("name", "N/A")
+                    self_url = dashboard.get("self", "N/A")
+                    view_url = dashboard.get("view", "N/A")
+                    print(f"    - ID: {dashboard_id}")
+                    print(f"      Name: {name}")
+                    print(f"      API URL: {self_url}")
+                    print(f"      View URL: {view_url}")
+            else:
+                print("    No dashboards found.")
+        else:
+            print(f"{Fore.YELLOW}- No unauthenticated access to JIRA dashboards detected on: {dashboard_url}{Style.RESET_ALL}")
+    except json.JSONDecodeError:
+        print(f"{Fore.RED}- Failed to parse JSON response from: {dashboard_url}{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while checking {dashboard_url}: {e}{Style.RESET_ALL}")
+
+    check_unauthenticated_dashboard_access(url)
+
     # Check for unauthenticated access to JIRA project categories
+    def check_unauthenticated_project_categories(url):
+        project_category_url = f"{url}rest/api/2/projectCategory?maxResults=1000"
+
     try:
         response = requests.get(project_category_url, verify=False)
+
+        # Check for unauthenticated access and parse the response
         if response.status_code == 200:
             vulnerabilities.append(f"+ Unauthenticated access to JIRA project categories | URL : {project_category_url}")
-    except:
-        pass
+
+            data = response.json()
+
+            print(f"\n{Fore.GREEN}+ Unauthenticated Access to JIRA Project Categories Detected\n++ Manually check these for Unauthenticated Access ++{Style.RESET_ALL}")
+            print(f"  URL: {project_category_url}")
+            print("\n  Project Categories Details:")
+            
+            if data:
+                for category in data:
+                    category_self = category.get("self", "N/A")
+                    category_id = category.get("id", "N/A")
+                    description = category.get("description", "N/A")
+                    name = category.get("name", "N/A")
+
+                    print(f"    - ID: {category_id}")
+                    print(f"      Name: {name}")
+                    print(f"      Description: {description}")
+                    print(f"      API URL: {category_self}")
+            else:
+                print("    No project categories found.")
+        else:
+            print(f"{Fore.YELLOW}- No unauthenticated access to JIRA project categories detected on: {project_category_url}{Style.RESET_ALL}")
+    except json.JSONDecodeError:
+        print(f"{Fore.RED}- Failed to parse JSON response from: {project_category_url}{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while checking {project_category_url}: {e}{Style.RESET_ALL}")
+
+    check_unauthenticated_project_categories(url)
 
     # Check for unauthenticated access to JIRA resolutions
     try:
@@ -126,12 +193,50 @@ def JIRA_TestCases(url):
         pass
 
     # Check for unauthenticated access to JIRA admin projects
+
+    def check_unauthenticated_admin_projects(url):
+        admin_projects_url = f"{url}rest/menu/latest/admin"
+
     try:
         response = requests.get(admin_projects_url, verify=False)
+
+        # Check for unauthenticated access and parse the response
         if response.status_code == 200:
             vulnerabilities.append(f"+ Unauthenticated access to JIRA admin projects | URL : {admin_projects_url}")
-    except:
-        pass
+
+            data = response.json()
+
+            print(f"\n{Fore.GREEN}+ Unauthenticated Access to JIRA Admin Projects Detected{Style.RESET_ALL}")
+            print(f"  URL: {admin_projects_url}")
+            print("\n  Admin Projects Details:")
+            
+            if data:
+                for project in data:
+                    key = project.get("key", "N/A")
+                    link = project.get("link", "N/A")
+                    label = project.get("label", "N/A")
+                    tooltip = project.get("tooltip", "N/A")
+                    local = project.get("local", "N/A")
+                    self_field = project.get("self", "N/A")
+                    app_type = project.get("applicationType", "N/A")
+
+                    print(f"    - Key: {key}")
+                    print(f"      Link: {link}")
+                    print(f"      Label: {label}")
+                    print(f"      Tooltip: {tooltip}")
+                    print(f"      Local: {local}")
+                    print(f"      Self: {self_field}")
+                    print(f"      Application Type: {app_type}")
+            else:
+                print("    No admin projects found.")
+        else:
+            print(f"{Fore.YELLOW}- No unauthenticated access to JIRA admin projects detected on: {admin_projects_url}{Style.RESET_ALL}")
+    except json.JSONDecodeError:
+        print(f"{Fore.RED}- Failed to parse JSON response from: {admin_projects_url}{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while checking {admin_projects_url}: {e}{Style.RESET_ALL}")
+
+    check_unauthenticated_admin_projects(url)
 
     # Check for CVE-2020-14179
     try:
@@ -158,20 +263,72 @@ def JIRA_TestCases(url):
         pass
 
     # Check for CVE-2019-3403
+    def check_cve_2019_3403(url):
+        user_picker_url = f"{url}rest/api/2/user/picker?query=admin"
+
     try:
         response = requests.get(user_picker_url, verify=False)
+
+        # Check for the vulnerability and parse the response
         if response.status_code == 200 and "users" in response.text:
             vulnerabilities.append(f"+ CVE-2019-3403: Information disclosure of all existing users on the JIRA server | URL : {user_picker_url}")
-    except:
-        pass
 
-    # Check for CVE-2019-8449 
+            data = response.json()
+            users = data.get("users", [])
+            total_users = data.get("total", "N/A")
+            header = data.get("header", "N/A")
+
+            print(f"\n{Fore.GREEN}+ CVE-2019-3403 Detected{Style.RESET_ALL}")
+            print(f"  URL: {user_picker_url}")
+            print(f"  Total Users Found: {total_users}")
+            print(f"  Header: {header}")
+            print(f"  User Details: {users if users else 'No users listed.'}")
+        else:
+            print(f"{Fore.YELLOW}- No CVE-2019-3403 vulnerability detected on: {user_picker_url}{Style.RESET_ALL}")
+    except json.JSONDecodeError:
+        print(f"{Fore.RED}- Failed to parse JSON response from: {user_picker_url}{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while checking {user_picker_url}: {e}{Style.RESET_ALL}")
+
+    check_cve_2019_3403(url)
+
+
+    # Check for CVE-2019-8449
+    def check_cve_2019_8449(url):
+        JRASERVER_url = f"{url}rest/api/latest/groupuserpicker?query=1&maxResults=50000&showAvatar=true"
+
     try:
         response = requests.get(JRASERVER_url, verify=False)
+
+        # Check for the vulnerability and parse the response
         if response.status_code == 200 and "users" in response.text:
             vulnerabilities.append(f"+ CVE-2019-8449: The /rest/api/latest/groupuserpicker resource in Jira before version 8.4.0 allows remote attackers to enumerate usernames via an information disclosure vulnerability. | URL : {JRASERVER_url}")
-    except:
-        pass
+
+            data = response.json()
+            users = data.get("users", {}).get("users", [])
+            total_users = data.get("users", {}).get("total", "N/A")
+            user_header = data.get("users", {}).get("header", "N/A")
+
+            groups = data.get("groups", {}).get("groups", [])
+            total_groups = data.get("groups", {}).get("total", "N/A")
+            group_header = data.get("groups", {}).get("header", "N/A")
+
+            print(f"\n{Fore.GREEN}+ CVE-2019-8449 Detected{Style.RESET_ALL}")
+            print(f"  URL: {JRASERVER_url}")
+            print(f"  Total Users Found: {total_users}")
+            print(f"  User Header: {user_header}")
+            print(f"  User Details: {users if users else 'No users listed.'}")
+            print(f"  Total Groups Found: {total_groups}")
+            print(f"  Group Header: {group_header}")
+            print(f"  Group Details: {groups if groups else 'No groups listed.'}")
+        else:
+            print(f"{Fore.YELLOW}- No CVE-2019-8449 vulnerability detected on: {JRASERVER_url}{Style.RESET_ALL}")
+    except json.JSONDecodeError:
+        print(f"{Fore.RED}- Failed to parse JSON response from: {JRASERVER_url}{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while checking {JRASERVER_url}: {e}{Style.RESET_ALL}")
+ 
+    check_cve_2019_8449(url)
 
     #cve-2019-8451:ssrf-response-body    
     try:
@@ -303,7 +460,7 @@ def JIRA_TestCases(url):
 
     # Report the results of the analysis to the user
     if vulnerabilities:
-        print(f"{Fore.RED}+ The following vulnerabilities were found:{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}+ \n The following vulnerabilities were found:{Style.RESET_ALL}")
         for vulnerability in vulnerabilities:
             print("  " + vulnerability)
     else:
@@ -334,7 +491,7 @@ def parse_jira_response(response_text):
         print(f"Error parsing JSON response: {e}")
 
 def check_jira(url, path):
-    if not url.startswith("http") or url.startswith("https"):
+    if not url.startswith("http") or not url.startswith("https"):
         url = "https://" + url
         print(f"{Fore.YELLOW}[Scanning] : " + url + f"{Style.RESET_ALL}")
         #print(url)
@@ -345,7 +502,9 @@ def check_jira(url, path):
         response = requests.get(full_url +'rest/api/2/serverInfo', verify=False)
         if response.status_code == 200 and "serverTitle" in response.json():
             print(f"{Fore.GREEN}+ JIRA is running on:", url, f"{Style.RESET_ALL}")
+            
             data = response.json()
+
             base_url = data.get("baseUrl", "N/A")
             version = data.get("version", "N/A")
             deployment_type = data.get("deploymentType", "N/A")
@@ -365,6 +524,7 @@ def check_jira(url, path):
             JIRA_TestCases(full_url)
         else:
             print("- JIRA is not running on:", url)
+            print("- try python3 JIRAya.py --single",url, "-p /jira/")
     except Exception as e:
         print(f"{Fore.RED}- An error occurred while checking {url}: {e}{Style.RESET_ALL}")
 
