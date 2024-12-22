@@ -125,3 +125,22 @@ ex: CVE-2019-8442
   URL: https://jira3/jira/s/thiscanbeanythingyouwant/_/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.xml
 ```
 
+ex CVE-2019-11581
+
+NOT VULN
+```
+- No CVE-2019-11581 vulnerability detected on: https://jira6/secure/ContactAdministrators!default.jspa
+	 **The contact form is not configured and most likely NOT vulnerable.**
+```
+
+VULN
+```
++ CVE-2019-11581 Detected - The contact form is configured and potential vulnerable [MANUAL REVIEW REQUIRED]
+  URL: https://jira78/jira/secure/ContactAdministrators!default.jspa
+  Note: Exploitation requires manual steps.
+  Note: For this issue to be exploitable at least one of the following conditions must be met:
+  1. An SMTP server has been configured in Jira and the Contact Administrators Form is enabled
+  2. or an SMTP server has been configured in Jira and an attacker has "JIRA Administrators" access.
+  Note:Refer to: https://jira.atlassian.com/browse/JRASERVER-69532 && https://hackerone.com/reports/706841
+```
+
