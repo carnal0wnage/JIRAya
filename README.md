@@ -2,7 +2,7 @@ This is a fork of https://github.com/anmolksachan/JIRAya
 
 This vulnerability checks weren't really working correctly and didnt do much in the way of validating or dumping some data if the URL was a 200. 
 
-###Fixed
+### Fixed
 * add the ability to specify jira path
 * add some fixes to support http/https better
 * handle unverified SSL certs
