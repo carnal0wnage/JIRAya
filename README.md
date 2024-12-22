@@ -41,7 +41,7 @@ JIRA Server Information:
   Server Title    : Systems JIRA
 ```
 
-List the data if a JIRA server is vulnerable
+### List the data if a JIRA server is vulnerable
 
 ex: Unauthenticated Access to JIRA Admin Projects Detected
 ```
@@ -70,6 +70,26 @@ ex: Unauthenticated Access to JIRA Dashboards
       Name: System Dashboard
       API URL: https://jira4/jira/rest/api/2/dashboard/10000
       View URL: https://jira4/jira/secure/Dashboard.jspa?selectPageId=10000
+```
+ex: Unauthenticated Access to JIRA Project Categories
+```
++ Unauthenticated Access to JIRA Project Categories Detected
+++ Manually check these for Unauthenticated Access ++
+  URL: https://jira5/jira/rest/api/2/projectCategory?maxResults=1000
+
+  Project Categories Details:
+    - ID: 10003
+      Name: Delivered
+      Description: Project Delivered 
+      API URL: https://jira5/jira/rest/api/2/projectCategory/10003
+    - ID: 10400
+      Name: Development
+      Description: Development
+      API URL: https://jira5/jira/rest/api/2/projectCategory/10400
+    - ID: 10201
+      Name: Internal
+      Description: 
+      API URL: https://jira5/jira/rest/api/2/projectCategory/10201
 ```
 
 ex: CVE-2019-3403
