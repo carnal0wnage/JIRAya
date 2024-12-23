@@ -16,9 +16,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 colorama.init()
 
-# Suppress warnings for insecure requests
-#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 def banner():
     print(f"""
                █████ █████ ███████████     █████████   ██ ██ █████ █████   █████████  
@@ -33,7 +30,7 @@ def banner():
          """)
 
 def JIRA_TestCases(url):
-    vulnerabilities = []
+    vulnerabilities= []
     dashboard_url = f"{url}rest/api/2/dashboard?maxResults=100"
     project_category_url = f"{url}rest/api/2/projectCategory?maxResults=1000"
     resolution_url = f"{url}rest/api/2/resolution"
@@ -67,50 +64,9 @@ def JIRA_TestCases(url):
     signup_url = f"{url}secure/Signup!default.jspa"
 
     # Check for unauthenticated access to JIRA dashboards
+    check_result = check_unauthenticated_dashboard_access(url)
+    vulnerabilities.append(check_result)
 
-    def check_unauthenticated_dashboard_access(url):
-        dashboard_url = f"{url}rest/api/2/dashboard?maxResults=100"
-
-    try:
-        response = requests.get(dashboard_url, verify=False)
-
-        # Check for unauthenticated access and parse the response
-        if response.status_code == 200:
-            vulnerabilities.append(f"+ Unauthenticated access to JIRA dashboards | URL : {dashboard_url}")
-
-            data = response.json()
-            start_at = data.get("startAt", "N/A")
-            max_results = data.get("maxResults", "N/A")
-            total_dashboards = data.get("total", "N/A")
-            dashboards = data.get("dashboards", [])
-
-            print(f"\n{Fore.GREEN}+ Unauthenticated Access to JIRA Dashboards Detected{Style.RESET_ALL}")
-            print(f"  URL: {dashboard_url}")
-            print(f"  Start At: {start_at}")
-            print(f"  Max Results: {max_results}")
-            print(f"  Total Dashboards: {total_dashboards}")
-            print("\n  Dashboard Details:")
-            
-            if dashboards:
-                for dashboard in dashboards:
-                    dashboard_id = dashboard.get("id", "N/A")
-                    name = dashboard.get("name", "N/A")
-                    self_url = dashboard.get("self", "N/A")
-                    view_url = dashboard.get("view", "N/A")
-                    print(f"    - ID: {dashboard_id}")
-                    print(f"      Name: {name}")
-                    print(f"      API URL: {self_url}")
-                    print(f"      View URL: {view_url}")
-            else:
-                print("    No dashboards found.")
-        else:
-            print(f"{Fore.YELLOW}\n- No unauthenticated access to JIRA dashboards detected on: {dashboard_url}{Style.RESET_ALL}")
-    except json.JSONDecodeError:
-        print(f"{Fore.RED}- Failed to parse JSON response from: {dashboard_url}{Style.RESET_ALL}")
-    except Exception as e:
-        print(f"{Fore.RED}- An error occurred while checking {dashboard_url}: {e}{Style.RESET_ALL}")
-
-    check_unauthenticated_dashboard_access(url)
 
     # Check for unauthenticated access to JIRA project categories
     def check_unauthenticated_project_categories(url):
@@ -498,7 +454,48 @@ def JIRA_TestCases(url):
             vulnerabilities.append(f"+ CVE-2019-3403 [Information disclosured vulnerability] : Visit the URL address,you can check the user whether is exist on this host. | URL : {cve20193403}")
     except:
         pass 
-    
+ 
+
+    #CVE-2017-9506
+    try:
+        response = requests.get(cve20179506, verify=False)
+        if response.status_code == 200 in response.text:
+            vulnerabilities.append(f"+ CVE-2017-9506 : https://blog.csdn.net/caiqiiqi/article/details/89017806 | URL : {cve20179506}")
+    except:
+        pass     
+
+    #CVE-2019-3402
+    try:
+        response = requests.get(cve20193402, verify=False)
+        if response.status_code == 200 in response.text:
+            vulnerabilities.append(f"+ CVE-2019-3402 [Possible XSS]：XSS in the labels gadget  | URL : {cve20193402}")
+    except:
+        pass  
+
+    #CVE-2018-2082
+    try:
+        response = requests.get(cve20182082, verify=False)
+        if response.status_code == 200 in response.text:
+            vulnerabilities.append("+ CVE-2018-20824 [Possible XSS]：Jira XSS in WallboardServlet through the cyclePeriod parameter append target with /plugins/servlet/Wallboard/?dashboardId=10100&dashboardId=10101&cyclePeriod=(function(){alert(document.cookie);return%2030000;})()&transitionFx=none&random=true")
+    except:
+        pass  
+
+    # CVE-2017-9506
+    try:
+        response = requests.get(cve20179506, verify=False)
+        if response.status_code == 200 in response.text:
+            vulnerabilities.append(f"+ SSRF vulnerability in confluence Ref: https://medium.com/bugbountywriteup/piercing-the-veil-server-side-request-forgery-to-niprnet-access-c358fd5e249a | URL : {dashboard_url}")
+    except:
+        pass
+
+    # CVE-2017-9506
+    try:
+        response = requests.get(uaed, verify=False)
+        if response.status_code == 200 in response.text:
+            vulnerabilities.append(f"+ Possible username and email disclosure | URL : {uaed}")
+    except:
+        pass
+
     #CVE-2019-8442
     def check_cve_2019_8442(url):
         print(f"{Fore.YELLOW}\nINFO: Checking for CVE-2019-8442")
@@ -543,80 +540,74 @@ def JIRA_TestCases(url):
                 print(f"{Fore.RED}* An error occurred while checking {target_url}: {e}{Style.RESET_ALL}")
 
     check_cve_2019_8442(url)
- 
 
-    #CVE-2017-9506
+    # print(vulnerabilities) #debug
+    # return the vulns
+    process_vulnerabilities(vulnerabilities)
+
+'''
+Function to process the vulnerabilities and print them at the end
+'''
+def process_vulnerabilities(vulnerabilities):
     try:
-        response = requests.get(cve20179506, verify=False)
-        if response.status_code == 200 in response.text:
-            vulnerabilities.append(f"+ CVE-2017-9506 : https://blog.csdn.net/caiqiiqi/article/details/89017806 | URL : {cve20179506}")
-    except:
-        pass     
+        if vulnerabilities:
+            print(f"{Fore.GREEN}+ \n The following vulnerabilities were found:{Style.RESET_ALL}")
+            for vuln in vulnerabilities:
+                print(f"{vuln}")
+        else:
+            print("- No vulnerabilities were found.")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while parsing vulns: {e}{Style.RESET_ALL}")
 
-    #CVE-2019-3402
+'''
+Function to check for unauthenticated dashboard access
+'''
+def check_unauthenticated_dashboard_access(url):
+    dashboard_url = f"{url}rest/api/2/dashboard?maxResults=100"
+    vulnerabilities = ''  # Local vulnerabilities list
+
     try:
-        response = requests.get(cve20193402, verify=False)
-        if response.status_code == 200 in response.text:
-            vulnerabilities.append(f"+ CVE-2019-3402 [Possible XSS]：XSS in the labels gadget  | URL : {cve20193402}")
-    except:
-        pass  
+        response = requests.get(dashboard_url, verify=False)
 
-    #CVE-2018-2082
-    try:
-        response = requests.get(cve20182082, verify=False)
-        if response.status_code == 200 in response.text:
-            vulnerabilities.append("+ CVE-2018-20824 [Possible XSS]：Jira XSS in WallboardServlet through the cyclePeriod parameter append target with /plugins/servlet/Wallboard/?dashboardId=10100&dashboardId=10101&cyclePeriod=(function(){alert(document.cookie);return%2030000;})()&transitionFx=none&random=true")
-    except:
-        pass  
+        # Check for unauthenticated access and parse the response
+        if response.status_code == 200:
+            vulnerabilities += (f"+ Unauthenticated access to JIRA dashboards | URL : {dashboard_url}")
 
-    # CVE-2017-9506
-    try:
-        response = requests.get(cve20179506, verify=False)
-        if response.status_code == 200 in response.text:
-            vulnerabilities.append(f"+ SSRF vulnerability in confluence Ref: https://medium.com/bugbountywriteup/piercing-the-veil-server-side-request-forgery-to-niprnet-access-c358fd5e249a | URL : {dashboard_url}")
-    except:
-        pass
+            data = response.json()
+            start_at = data.get("startAt", "N/A")
+            max_results = data.get("maxResults", "N/A")
+            total_dashboards = data.get("total", "N/A")
+            dashboards = data.get("dashboards", [])
 
-    # CVE-2017-9506
-    try:
-        response = requests.get(uaed, verify=False)
-        if response.status_code == 200 in response.text:
-            vulnerabilities.append(f"+ Possible username and email disclosure | URL : {uaed}")
-    except:
-        pass
+            print(f"\n{Fore.GREEN}+ Unauthenticated Access to JIRA Dashboards Detected{Style.RESET_ALL}")
+            print(f"  URL: {dashboard_url}")
+            print(f"  Start At: {start_at}")
+            print(f"  Max Results: {max_results}")
+            print(f"  Total Dashboards: {total_dashboards}")
+            print("\n  Dashboard Details:")
+            
+            if dashboards:
+                for dashboard in dashboards:
+                    dashboard_id = dashboard.get("id", "N/A")
+                    name = dashboard.get("name", "N/A")
+                    self_url = dashboard.get("self", "N/A")
+                    view_url = dashboard.get("view", "N/A")
+                    print(f"    - ID: {dashboard_id}")
+                    print(f"      Name: {name}")
+                    print(f"      API URL: {self_url}")
+                    print(f"      View URL: {view_url}")
+            else:
+                print("    No dashboards found.")
+        else:
+            print(f"{Fore.YELLOW}\n- No unauthenticated access to JIRA dashboards detected on: {dashboard_url}{Style.RESET_ALL}")
+    except json.JSONDecodeError:
+        print(f"{Fore.RED}- Failed to parse JSON response from: {dashboard_url}{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}- An error occurred while checking {dashboard_url}: {e}{Style.RESET_ALL}")
+    # print(f"dashboard vulns: {vulnerabilities}")
+    return vulnerabilities  # Return the list of vulnerabilities
 
-    # Report the results of the analysis to the user
-    if vulnerabilities:
-        print(f"{Fore.GREEN}+ \n The following vulnerabilities were found:{Style.RESET_ALL}")
-        for vulnerability in vulnerabilities:
-            print("  " + vulnerability)
-    else:
-        print("- No vulnerabilities were found.")
 
-
-def parse_jira_response(response_text):
-    try:
-        # Parse the JSON response
-        data = json.loads(response_text)
-
-        # Extract fields with defaults for missing values
-        base_url = data.get("baseUrl", "N/A")
-        version = data.get("version", "N/A")
-        deployment_type = data.get("deploymentType", "N/A")
-        build_number = data.get("buildNumber", "N/A")
-        build_date = data.get("buildDate", "N/A")
-        server_title = data.get("serverTitle", "N/A")
-
-        # Print the extracted information
-        print("JIRA Server Information:")
-        print(f"  Base URL        : {base_url}")
-        print(f"  Version         : {version}")
-        print(f"  Deployment Type : {deployment_type}")
-        print(f"  Build Number    : {build_number}")
-        print(f"  Build Date      : {build_date}")
-        print(f"  Server Title    : {server_title}")
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON response: {e}")
 
 def check_jira(url, path):
     # Parse the URL to check its components
@@ -628,7 +619,6 @@ def check_jira(url, path):
         url = f"{parsed_url.scheme}://{parsed_url.netloc}"  # Keep the provided scheme and netloc
 
     print(f"{Fore.YELLOW}[Scanning] : {url}{Style.RESET_ALL}")
-
 
     try:
         full_url = url + path
@@ -654,7 +644,10 @@ def check_jira(url, path):
             print(f"  Build Date      : {build_date}")
             print(f"  Server Title    : {server_title}")
 
-            print(f"\n  Running Vuln Checks")
+            print(f"{Fore.YELLOW}\n- Running Vuln Checks{Style.RESET_ALL}")
+
+
+            # Run all the checks
             JIRA_TestCases(full_url)
         else:
             print("- JIRA is not running on:", url)
